@@ -1,34 +1,33 @@
-import { ChangeEvent } from 'react'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { ref, getDownloadURL } from 'firebase/storage'
-import { useForm } from 'react-hook-form'
-import { useUploadFile } from 'react-firebase-hooks/storage'
-import { useRouter } from 'next/router'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import { db, storage } from '../../app/firebaseApp'
-import { Alert } from '@mui/material'
-import useUserProfile from '../../helpers/useUserProfile'
-import PhotosDnD from '../../components/PhotosDnD'
+import { ChangeEvent } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
+import { useForm } from "react-hook-form";
+import { useUploadFile } from "react-firebase-hooks/storage";
+import { useRouter } from "next/router";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import { db, storage } from "../../app/firebaseApp";
+import { Alert } from "@mui/material";
+import useUserProfile from "../../helpers/useUserProfile";
 
 type FormData = {
-  images: string[]
-  text: string
-}
+  images: string[];
+  text: string;
+};
 
 const New = () => {
-  const { userProfile } = useUserProfile()
+  const { userProfile } = useUserProfile();
 
-  const router = useRouter()
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
-  } = useForm<FormData>({ mode: 'onChange' })
-  const [uploadFile, uploading] = useUploadFile()
-  const imagesValue = watch('images')
+  } = useForm<FormData>({ mode: "onChange" });
+  const [uploadFile, uploading] = useUploadFile();
+  const imagesValue = watch("images");
 
   const onSubmit = handleSubmit(async (data) => {
     if (userProfile) {
@@ -40,32 +39,32 @@ const New = () => {
         },
         createdAt: serverTimestamp(),
         images: data.images,
-      }
-      const docRef = await addDoc(collection(db, 'posts'), newPost)
-      router.push(`/posts/${docRef.id}`)
+      };
+      const docRef = await addDoc(collection(db, "posts"), newPost);
+      router.push(`/posts/${docRef.id}`);
     }
-  })
+  });
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const fileUploads = Array.from(event.target.files).map(async (file) => {
-        const fileRef = ref(storage, `${Date.now()}-${file.name}`)
-        const result = await uploadFile(fileRef, file)
+        const fileRef = ref(storage, `${Date.now()}-${file.name}`);
+        const result = await uploadFile(fileRef, file);
         if (result) {
-          return await getDownloadURL(result?.ref)
+          return await getDownloadURL(result?.ref);
         }
-        return ''
-      })
+        return "";
+      });
 
-      const results = await Promise.all(fileUploads)
+      const results = await Promise.all(fileUploads);
 
       if (results) {
-        setValue('images', results, { shouldValidate: true })
+        setValue("images", results, { shouldValidate: true });
       }
     }
-  }
+  };
 
-  register('images', { required: true })
+  register("images", { required: true });
 
   return (
     <div>
@@ -86,14 +85,13 @@ const New = () => {
           <Alert severity="error">
             Пожалуйста, загрузите хотя бы одно фото
           </Alert>
-          {imagesValue  && <PhotosDnD/>}
         )}
         {imagesValue &&
           imagesValue.map((image) => (
             <img key={image} src={image} alt="" style={{ width: 200 }} />
           ))}
         <TextField
-          {...register('text')}
+          {...register("text")}
           multiline
           label="Текст поста"
           rows={4}
@@ -103,7 +101,7 @@ const New = () => {
         <Button type="submit">Опубликовать</Button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default New
+export default New;
